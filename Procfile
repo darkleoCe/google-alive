@@ -1,0 +1,1 @@
+web: java $JAVA_OPTS -Dfile.encoding=utf-8 -cp target/classes:target/dependency/* server.HttpServer

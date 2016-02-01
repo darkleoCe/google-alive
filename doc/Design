@@ -1,0 +1,13 @@
+1. 如何去除google的redirect
+1）拦截redirect请求，直接返回302
+2）对响应解码，在响应中去除onmousedown事件
+   需要在RawResponseHandler前加一个ResponseDecoder，后面加一个ResponseEncoder。
+   响应是gzip加密，解码/编码比较耗时。
+
+
+2. 两种优化方式
+1）302和204直接返回
+2）解析响应内容并处理
+
+编码说明:
+RawRequestHandler在该项目中未使用
