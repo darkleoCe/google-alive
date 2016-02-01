@@ -22,7 +22,9 @@ public class HttpServer {
                     .childHandler(new HttpServerInitializer());
 
             //ChannelFuture f = b.bind(Integer.valueOf(System.getenv("PORT"))).sync();
-            ChannelFuture f = b.bind(9000).sync();
+            int port = parsePort(args);
+            Console.info("HttpServer", "Start google-alive on " + port);
+            ChannelFuture f = b.bind(port).sync();
 
             f.channel().closeFuture().sync();
         } catch(Exception e){
@@ -33,6 +35,26 @@ public class HttpServer {
             workerGroup.shutdownGracefully();
 
             System.out.println("Http Server Exit.");
+        }
+    }
+
+    //env > args > default
+    public static int parsePort(String[] args) {
+        try {
+            //Parse port from env
+            String portInEnv = System.getenv("PORT");
+            if (portInEnv != null && !portInEnv.trim().equals("")) {
+                return Integer.valueOf(System.getenv("PORT"));
+            } else {
+                //Parse port from args
+                if (args.length >= 1) {
+                    return Integer.valueOf(args[0].trim());
+                } else {
+                    return 80;
+                }
+            }
+        } catch (Exception e){
+            return 80;
         }
     }
 }
