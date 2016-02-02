@@ -1,11 +1,7 @@
 package server;
 
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.channel.*;
+import io.netty.handler.codec.http.*;
 import server.http.HttpDirectConnectRemoteHandler;
 import server.util.ChannelUtil;
 import server.util.Console;
@@ -14,6 +10,11 @@ import server.util.HttpUtil;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static io.netty.handler.codec.http.HttpHeaders.Names.LOCATION;
+import static io.netty.handler.codec.http.HttpResponseStatus.NO_CONTENT;
+import static io.netty.handler.codec.http.HttpResponseStatus.SEE_OTHER;
+import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 @ChannelHandler.Sharable
 public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
@@ -46,12 +47,27 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
 
         //无用请求直接响应
         if(req.getUri().startsWith("/gen_204")){
-            HttpUtil.send204(ctx);
-            Console.debug("HttpServerHandler", "204----------------------------------------------");
+            Console.debug("HttpFullRequestHandler", "204----------------------------------------------");
+            ctx.pipeline().addFirst("tmp-response-encoder", new HttpResponseEncoder());
+            FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, NO_CONTENT);
+            HttpHeaders.setContentLength(response, 0);
+            ctx.channel().writeAndFlush(response).addListener(new ChannelFutureListener() {
+                public void operationComplete(ChannelFuture future) {
+                    ctx.pipeline().remove("tmp-response-encoder");
+                }
+            });
         } else if(req.getUri().startsWith("/url?")){
             String redirectURL = HttpUtil.getParameter("url", req);
-            HttpUtil.redirect(ctx, redirectURL);
-            Console.debug("HttpServerHandler", "302------------------" + redirectURL);
+            Console.debug("HttpFullRequestHandler", "302------------------" + redirectURL);
+            ctx.pipeline().addFirst("tmp-response-encoder", new HttpResponseEncoder());
+            FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, SEE_OTHER);
+            response.headers().add(LOCATION, redirectURL);
+            HttpHeaders.setContentLength(response, 0);
+            ctx.channel().writeAndFlush(response).addListener(new ChannelFutureListener() {
+                public void operationComplete(ChannelFuture future) {
+                    ctx.pipeline().remove("tmp-response-encoder");
+                }
+            });
         } else {
             //直接连接Google服务器
             ctx.pipeline().addLast("connect", new HttpDirectConnectRemoteHandler());

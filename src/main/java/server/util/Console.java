@@ -5,7 +5,7 @@ import java.util.Date;
 
 
 public class Console {
-    public static boolean debugMode = true;
+    public static boolean debugMode = false;
     private static SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
 
     public static void debug(String module, String str){
