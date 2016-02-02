@@ -1,14 +1,2 @@
-# 移除响应处理
-# 204 pending问题
-
-target="_blank"
-阻止302跳转到google域名
-
-搜索结果单击无法打开页面
-
-
-
-完成
--------------------------------------------------
-自动识别跳转后域名
-Host和Referer的自动修正
+#	add multiple google ips
+# add default index page
